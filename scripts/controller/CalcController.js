@@ -35,7 +35,7 @@ class CalcController {
     }
 
     constructNewEntry(value) {
-        if(this._boolEquals){
+        if (this._boolEquals) {
             this.allClearManager();
         }
         if (this._currentEntry == '' && value == 'ponto') {
@@ -89,12 +89,13 @@ class CalcController {
         if (this._currentOperation == undefined) {
             this._currentEntry = 0;
             this.displayCalc = 0;
-        } else {
+        } else if (this._currentOperation == '+' || this._currentOperation == '-') {
             this._currentEntry *= this._currentResult / 100;
+        } else {
+            this._currentEntry = this._currentEntry / 100;
         }
-        this.setLastEntry();
+        this._lastEntry = this.displayCalc = this._currentEntry;
         this.displayOperation('=');
-        this.executeOperation();
     }
 
     managesOperation(operation) {
@@ -110,7 +111,7 @@ class CalcController {
 
     clearEntryManager() {
         if (this._currentEntry == '') {
-            this._currentEntry = 0;
+            this._currentEntry = '';
             this.displayCalc = 0;
             this._currentResult = 0;
             this.setLastEntry();
@@ -121,7 +122,7 @@ class CalcController {
     }
 
     allClearManager() {
-        this._currentEntry = 0;
+        this._currentEntry = '';
         this.displayCalc = 0;
         this._currentResult = 0;
         this.setLastEntry();
