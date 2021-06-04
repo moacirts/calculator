@@ -1,10 +1,13 @@
 class CalcController {
     constructor() {
         this._locale = 'pt-BR';
+        this._sound = new Audio('click.mp3');
+        this._sound.muted = false;
         this._displayCalcEl = document.querySelector('#display');
         this._dateEl = document.querySelector('#data');
         this._timeEl = document.querySelector('#hora');
         this._boolEquals = false;
+        this._boolSound = true;
         this._currentEntry = '';
         this._lastEntry = 0;
         this._currentResult = 0;
@@ -37,6 +40,7 @@ class CalcController {
         this.initKeyboard();
         this.pastFromClipboard();
     }
+
 
     constructNewEntry(value) {
         if (value == ',' || value == '.') {
@@ -145,13 +149,14 @@ class CalcController {
     pastFromClipboard() {
         document.addEventListener('paste', e => {
             let pastedNumber = parseFloat(e.clipboardData.getData('Text'));
-            if (!isNaN(pastedNumber)){
+            if (!isNaN(pastedNumber)) {
                 this.displayCalc = this._currentEntry = pastedNumber;
             }
         });
     }
 
     actionHub(actionValue, event = {}) {
+        this.playSound();
         switch (actionValue) {
             case '0':
             case '1':
@@ -223,7 +228,7 @@ class CalcController {
 
     initButtonsEvents() {
         let buttons = document.querySelectorAll('#buttons > g, #parts > g');
-        buttons.forEach((button, index) => {
+        buttons.forEach((button) => {
             this.addEventListenerAll(button, 'click drag', e => {
                 const buttonValue = button.className.baseVal.replace('btn-', '');
                 this.actionHub(buttonValue);
@@ -231,7 +236,24 @@ class CalcController {
             this.addEventListenerAll(button, 'mouseover mouseup mousedown', e => {
                 button.style.cursor = 'pointer';
             });
+            if (button.className.baseVal == 'btn-ac') {
+                console.log(button);
+                button.addEventListener('dblclick', e => {
+                    this.toggleSound();
+                });
+            }
         });
+    }
+
+    toggleSound() {
+        this._boolSound = !this._boolSound;
+    }
+
+    playSound() {
+        if (this._boolSound) {
+            this._sound.currentTime = 0;
+            this._sound.play();
+        }
     }
 
     addEventListenerAll(element, events, fn) {
