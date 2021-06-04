@@ -11,11 +11,17 @@ class CalcController {
         this._currentOperation;
         this._currentDate;
         this._calcOperations = {
+            'Enter': '=',
             igual: '=',
+            '+': '+',
             soma: '+',
+            '-': '-',
             subtracao: '-',
+            '*': '*',
             multiplicacao: '*',
+            '/': '/',
             divisao: '/',
+            '%': '%',
             porcento: '%'
         };
         this.initialize();
@@ -28,13 +34,14 @@ class CalcController {
         }, 1000);
 
         this.initButtonsEvents();
-    }
-
-    setDisplayError() {
-        this.displayCalc = 'Error';
+        this.initKeyboard();
+        this.pastFromClipboard();
     }
 
     constructNewEntry(value) {
+        if (value == ',' || value == '.') {
+            value = 'ponto';
+        }
         if (this._boolEquals) {
             this.allClearManager();
         }
@@ -128,8 +135,24 @@ class CalcController {
         this.setLastEntry();
     }
 
-    directButtonAction(buttonValue) {
-        switch (buttonValue) {
+    copyToClipboard() {
+        const input = document.querySelector('#displayCopyAux');
+        input.value = this.displayCalc;
+        input.select();
+        document.execCommand('Copy');
+    }
+
+    pastFromClipboard() {
+        document.addEventListener('paste', e => {
+            let pastedNumber = parseFloat(e.clipboardData.getData('Text'));
+            if (!isNaN(pastedNumber)){
+                this.displayCalc = this._currentEntry = pastedNumber;
+            }
+        });
+    }
+
+    actionHub(actionValue, event = {}) {
+        switch (actionValue) {
             case '0':
             case '1':
             case '2':
@@ -141,34 +164,50 @@ class CalcController {
             case '8':
             case '9':
             case 'ponto':
-                this.constructNewEntry(buttonValue);
+            case ',':
+            case '.':
+                this.constructNewEntry(actionValue);
                 this._boolEquals = false;
                 break;
 
+            case '+':
             case 'soma':
+            case '-':
             case 'subtracao':
+            case '*':
             case 'multiplicacao':
+            case '/':
             case 'divisao':
-                this.managesOperation(buttonValue);
+                this.managesOperation(actionValue);
                 this._boolEquals = false;
                 break;
 
+            case 'Enter':
             case 'igual':
                 this.equalManager();
                 this._boolEquals = true;
                 break;
 
+            case '%':
             case 'porcento':
                 this.percentageManager();
                 this._boolEquals = false;
                 break;
 
+            case 'Backspace':
             case 'ce':
                 this.clearEntryManager();
                 break;
 
+            case 'Escape':
             case 'ac':
                 this.allClearManager();
+                break;
+
+            case 'c':
+                if (event.ctrlKey) {
+                    this.copyToClipboard();
+                }
                 break;
 
             default:
@@ -176,12 +215,18 @@ class CalcController {
         }
     }
 
+    initKeyboard() {
+        document.addEventListener('keyup', e => {
+            this.actionHub(e.key, e);
+        });
+    }
+
     initButtonsEvents() {
         let buttons = document.querySelectorAll('#buttons > g, #parts > g');
         buttons.forEach((button, index) => {
             this.addEventListenerAll(button, 'click drag', e => {
                 const buttonValue = button.className.baseVal.replace('btn-', '');
-                this.directButtonAction(buttonValue);
+                this.actionHub(buttonValue);
             });
             this.addEventListenerAll(button, 'mouseover mouseup mousedown', e => {
                 button.style.cursor = 'pointer';
